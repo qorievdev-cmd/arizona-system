@@ -9,7 +9,7 @@ const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const JWT_SECRET = "arizona-secret-key-2026";
 
 // ========== НАСТРОЙКА ПОЧТЫ ==========
@@ -32,7 +32,7 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization",
   );
   if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
@@ -182,7 +182,7 @@ async function setupUsers() {
       "👑",
       0,
       new Date().toISOString(),
-    ]
+    ],
   );
   db.run(
     `INSERT OR IGNORE INTO users (username, email, password_hash, full_name, role, avatar, must_change_password, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -195,7 +195,7 @@ async function setupUsers() {
       "👔",
       0,
       new Date().toISOString(),
-    ]
+    ],
   );
   db.run(
     `INSERT OR IGNORE INTO users (username, email, password_hash, full_name, role, avatar, must_change_password, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -208,7 +208,7 @@ async function setupUsers() {
       "💰",
       0,
       new Date().toISOString(),
-    ]
+    ],
   );
   db.run(
     `INSERT OR IGNORE INTO users (username, email, password_hash, full_name, role, avatar, must_change_password, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -221,7 +221,7 @@ async function setupUsers() {
       "🍳",
       0,
       new Date().toISOString(),
-    ]
+    ],
   );
   db.run(
     `INSERT OR IGNORE INTO users (username, email, password_hash, full_name, role, avatar, must_change_password, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -234,7 +234,7 @@ async function setupUsers() {
       "🍸",
       0,
       new Date().toISOString(),
-    ]
+    ],
   );
 
   const chats = [
@@ -300,7 +300,7 @@ async function setupUsers() {
   for (const chat of chats) {
     db.run(
       `INSERT OR IGNORE INTO folders (id, name, description, allowed_roles, icon) VALUES (?, ?, ?, ?, ?)`,
-      chat
+      chat,
     );
   }
 
@@ -349,7 +349,7 @@ app.post("/api/login", async (req, res) => {
 
       db.run(
         `UPDATE users SET last_seen = ?, temp_password = NULL WHERE id = ?`,
-        [new Date().toISOString(), user.id]
+        [new Date().toISOString(), user.id],
       );
 
       const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, {
@@ -370,7 +370,7 @@ app.post("/api/login", async (req, res) => {
             : user.avatar || "👤",
         },
       });
-    }
+    },
   );
 });
 
@@ -380,7 +380,7 @@ app.get("/api/me", authMiddleware, (req, res) => {
     [req.userId],
     (err, user) => {
       res.json({ user: user });
-    }
+    },
   );
 });
 
@@ -396,9 +396,9 @@ app.post(
       (err) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true, avatarUrl: `/avatars/${req.file.filename}` });
-      }
+      },
     );
-  }
+  },
 );
 
 app.put("/api/change-password", authMiddleware, async (req, res) => {
@@ -418,9 +418,9 @@ app.put("/api/change-password", authMiddleware, async (req, res) => {
         [newHash, req.userId],
         () => {
           res.json({ success: true });
-        }
+        },
       );
-    }
+    },
   );
 });
 
@@ -460,7 +460,7 @@ app.post("/api/users", authMiddleware, async (req, res) => {
           .catch((e) => console.log("Email не отправлен"));
       }
       res.json({ success: true, userId: this.lastID, tempPassword });
-    }
+    },
   );
 });
 
@@ -472,7 +472,7 @@ app.get("/api/users", authMiddleware, (req, res) => {
     `SELECT id, username, email, full_name, role, avatar, avatar_file, created_at FROM users WHERE is_active = 1`,
     (err, users) => {
       res.json({ users: users || [] });
-    }
+    },
   );
 });
 
@@ -484,7 +484,7 @@ app.delete("/api/users/:userId", authMiddleware, (req, res) => {
     [req.params.userId],
     () => {
       res.json({ success: true });
-    }
+    },
   );
 });
 
@@ -508,9 +508,9 @@ app.get("/api/folders", authMiddleware, (req, res) => {
             f.unread = unreadMap[f.id] || 0;
           });
           res.json({ folders: folders || [] });
-        }
+        },
       );
-    }
+    },
   );
 });
 
@@ -531,7 +531,7 @@ app.post("/api/folders", authMiddleware, (req, res) => {
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, id: this.lastID });
-    }
+    },
   );
 });
 
@@ -544,7 +544,7 @@ app.post("/api/folders/:folderId/members", authMiddleware, (req, res) => {
     [req.params.folderId, req.body.userId],
     (err) => {
       res.json({ success: true });
-    }
+    },
   );
 });
 
@@ -554,7 +554,7 @@ app.put("/api/folders/favorite/:folderId", authMiddleware, (req, res) => {
     [req.body.isFavorite ? 1 : 0, req.params.folderId],
     () => {
       res.json({ success: true });
-    }
+    },
   );
 });
 
@@ -585,7 +585,7 @@ app.get("/api/group-messages/:folderId", authMiddleware, (req, res) => {
       } else {
         res.json({ messages: [] });
       }
-    }
+    },
   );
 });
 
@@ -618,9 +618,9 @@ app.post(
       function (err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ success: true, id: this.lastID });
-      }
+      },
     );
-  }
+  },
 );
 
 app.post("/api/mark-read/:folderId", authMiddleware, (req, res) => {
@@ -628,7 +628,7 @@ app.post("/api/mark-read/:folderId", authMiddleware, (req, res) => {
     `INSERT OR IGNORE INTO user_read_status (user_id, message_id)
             SELECT ?, id FROM group_messages WHERE folder_id = ? AND user_id != ?`,
     [req.userId, req.params.folderId, req.userId],
-    () => res.json({ success: true })
+    () => res.json({ success: true }),
   );
 });
 
@@ -636,7 +636,7 @@ app.post("/api/message-reaction", authMiddleware, (req, res) => {
   db.run(
     `INSERT OR REPLACE INTO message_reactions (message_id, user_id, reaction) VALUES (?, ?, ?)`,
     [req.body.messageId, req.userId, req.body.reaction],
-    () => res.json({ success: true })
+    () => res.json({ success: true }),
   );
 });
 
@@ -656,9 +656,9 @@ app.put("/api/group-messages/:messageId", authMiddleware, (req, res) => {
       db.run(
         `UPDATE group_messages SET message = ?, edited_at = ?, is_edited = 1 WHERE id = ?`,
         [req.body.message, new Date().toISOString(), messageId],
-        () => res.json({ success: true })
+        () => res.json({ success: true }),
       );
-    }
+    },
   );
 });
 
@@ -677,9 +677,9 @@ app.delete("/api/group-messages/:messageId", authMiddleware, (req, res) => {
       db.run(
         `DELETE FROM group_messages WHERE id = ?`,
         [req.params.messageId],
-        () => res.json({ success: true })
+        () => res.json({ success: true }),
       );
-    }
+    },
   );
 });
 
@@ -694,7 +694,7 @@ app.get("/api/search", authMiddleware, (req, res) => {
     [req.query.q],
     (err, results) => {
       res.json({ results: results || [] });
-    }
+    },
   );
 });
 
@@ -708,7 +708,7 @@ app.get("/api/active-check", authMiddleware, (req, res) => {
     [req.userId, today],
     (err, shift) => {
       res.json({ hasActiveShift: !!shift });
-    }
+    },
   );
 });
 
@@ -746,9 +746,9 @@ app.post("/api/clock/in", authMiddleware, (req, res) => {
               ? `Смена отмечена (опоздание ${lateMinutes} мин)`
               : "Смена отмечена",
           });
-        }
+        },
       );
-    }
+    },
   );
 });
 
@@ -763,9 +763,9 @@ app.post("/api/clock/out", authMiddleware, (req, res) => {
       db.run(
         `UPDATE time_entries SET clock_out = ?, status = 'completed' WHERE id = ?`,
         [new Date().toISOString(), shift.id],
-        () => res.json({ success: true })
+        () => res.json({ success: true }),
       );
-    }
+    },
   );
 });
 
@@ -783,7 +783,7 @@ app.put("/api/clock/force-stop/:entryId", authMiddleware, (req, res) => {
         return res.status(500).json({ error: err.message });
       }
       res.json({ success: true, message: "Смена принудительно завершена" });
-    }
+    },
   );
 });
 
@@ -803,7 +803,7 @@ app.get("/api/active-shifts", authMiddleware, (req, res) => {
     [today],
     (err, shifts) => {
       res.json({ shifts: shifts || [] });
-    }
+    },
   );
 });
 
@@ -812,7 +812,7 @@ app.delete("/api/time-entry/:entryId", authMiddleware, (req, res) => {
   if (req.userRole !== "admin")
     return res.status(403).json({ error: "Только администратор" });
   db.run(`DELETE FROM time_entries WHERE id = ?`, [req.params.entryId], () =>
-    res.json({ success: true })
+    res.json({ success: true }),
   );
 });
 
@@ -862,7 +862,7 @@ app.get("/api/who-is-working", authMiddleware, (req, res) => {
     [today],
     (err, working) => {
       res.json({ working: working || [] });
-    }
+    },
   );
 });
 
@@ -882,7 +882,7 @@ app.post("/api/overtime-request", authMiddleware, (req, res) => {
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, message: "Запрос отправлен" });
-    }
+    },
   );
 });
 
@@ -893,7 +893,7 @@ app.get("/api/notifications", authMiddleware, (req, res) => {
     [req.userId],
     (err, notif) => {
       res.json({ notifications: notif || [] });
-    }
+    },
   );
 });
 
@@ -918,11 +918,11 @@ app.get("/api/stats", authMiddleware, (req, res) => {
                   weeklyShifts: weeklyShifts || [],
                 },
               });
-            }
+            },
           );
-        }
+        },
       );
-    }
+    },
   );
 });
 
@@ -939,7 +939,7 @@ app.get("/api/schedule", authMiddleware, (req, res) => {
     [startDate, endDate],
     (err, entries) => {
       res.json({ schedule: entries || [] });
-    }
+    },
   );
 });
 
